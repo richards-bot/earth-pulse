@@ -8,10 +8,19 @@ const LAYER_TIMEOUT_MS = Number(import.meta.env.VITE_LAYER_TIMEOUT_MS ?? 12_000)
 
 function withTimeout<T>(promiseFactory: (signal?: AbortSignal) => Promise<T>, timeoutMs: number): Promise<T> {
   const controller = new AbortController();
-  const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
 
-  return promiseFactory(controller.signal).finally(() => {
-    window.clearTimeout(timeoutId);
+  return new Promise<T>((resolve, reject) => {
+    const timeoutId = window.setTimeout(() => {
+      controller.abort();
+      reject(new Error(`Request timed out after ${Math.round(timeoutMs / 1000)}s`));
+    }, timeoutMs);
+
+    promiseFactory(controller.signal)
+      .then(resolve)
+      .catch(reject)
+      .finally(() => {
+        window.clearTimeout(timeoutId);
+      });
   });
 }
 

@@ -2,6 +2,7 @@ import maplibregl from 'maplibre-gl';
 import { useEffect, useMemo, useState } from 'react';
 import Map, { Marker } from 'react-map-gl';
 import { earthquakeRadiusMagnitude, severityColor } from '../utils/severity';
+import { isWebGLAvailable } from '../utils/webgl';
 import type { PulseEvent } from '../types/pulse';
 
 interface GlobeMapProps {
@@ -31,9 +32,13 @@ function markerSize(event: PulseEvent): number {
 
 export function GlobeMap({ events, onSelect }: GlobeMapProps) {
   const [isSmallScreen, setIsSmallScreen] = useState(false);
+  const [hasWebGL, setHasWebGL] = useState(true);
 
   useEffect(() => {
-    const check = () => setIsSmallScreen(window.matchMedia('(max-width: 980px)').matches);
+    const check = () => {
+      setIsSmallScreen(window.matchMedia('(max-width: 980px)').matches);
+      setHasWebGL(isWebGLAvailable());
+    };
     check();
     window.addEventListener('resize', check);
     return () => window.removeEventListener('resize', check);
@@ -43,6 +48,18 @@ export function GlobeMap({ events, onSelect }: GlobeMapProps) {
     () => (isSmallScreen ? ({ name: 'mercator' } as const) : ({ name: 'globe' } as const)),
     [isSmallScreen]
   );
+
+  if (!hasWebGL) {
+    return (
+      <div className="map-shell webgl-fallback">
+        <h3>Map unavailable in this in-app browser</h3>
+        <p>
+          Your browser view likely has WebGL disabled. Open this page in Safari/Chrome for the full globe.
+        </p>
+        <p className="muted">Live events loaded: {events.length}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="map-shell">

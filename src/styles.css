@@ -50,6 +50,14 @@ html,
   box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.2);
 }
 
+.webgl-fallback {
+  display: grid;
+  place-content: center;
+  gap: 8px;
+  text-align: center;
+  padding: 20px;
+}
+
 .controls {
   margin: 14px 0;
   display: grid;
