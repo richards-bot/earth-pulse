@@ -23,5 +23,5 @@ export interface DataLayerState {
 
 export interface LayerAdapter {
   key: LayerKey;
-  fetchEvents: () => Promise<PulseEvent[]>;
+  fetchEvents: (signal?: AbortSignal) => Promise<PulseEvent[]>;
 }

@@ -1,7 +1,7 @@
 import { ScatterplotLayer } from '@deck.gl/layers';
 import DeckGL from '@deck.gl/react';
 import maplibregl from 'maplibre-gl';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Map from 'react-map-gl';
 import { earthquakeRadiusMagnitude, severityColor } from '../utils/severity';
 import type { PulseEvent } from '../types/pulse';
@@ -36,6 +36,15 @@ function markerRadius(event: PulseEvent): number {
 }
 
 export function GlobeMap({ events, onSelect }: GlobeMapProps) {
+  const [isSmallScreen, setIsSmallScreen] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsSmallScreen(window.matchMedia('(max-width: 980px)').matches);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
   const layers = useMemo(
     () => [
       new ScatterplotLayer<PulseEvent>({
@@ -64,7 +73,7 @@ export function GlobeMap({ events, onSelect }: GlobeMapProps) {
         <Map
           mapLib={maplibregl as unknown as never}
           mapStyle="https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
-          projection={{ name: 'globe' } as never}
+          projection={(isSmallScreen ? { name: 'mercator' } : { name: 'globe' }) as never}
         />
       </DeckGL>
     </div>

@@ -4,6 +4,16 @@ import { layerAdapters } from '../data/layers';
 import type { DataLayerState, LayerKey, PulseEvent } from '../types/pulse';
 
 const DEFAULT_POLL_MS = Number(import.meta.env.VITE_POLL_INTERVAL_MS ?? 90_000);
+const LAYER_TIMEOUT_MS = Number(import.meta.env.VITE_LAYER_TIMEOUT_MS ?? 12_000);
+
+function withTimeout<T>(promiseFactory: (signal?: AbortSignal) => Promise<T>, timeoutMs: number): Promise<T> {
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
+
+  return promiseFactory(controller.signal).finally(() => {
+    window.clearTimeout(timeoutId);
+  });
+}
 
 export function usePulseData() {
   const [layers, setLayers] = useState<Record<LayerKey, DataLayerState>>(DEFAULT_LAYER_STATES);
@@ -20,7 +30,7 @@ export function usePulseData() {
     setLayers((prev) => ({ ...prev, [key]: { ...prev[key], status: 'loading', error: undefined } }));
 
     try {
-      const events = await adapter.fetchEvents();
+      const events = await withTimeout((signal) => adapter.fetchEvents(signal), LAYER_TIMEOUT_MS);
       setEventsByLayer((prev) => ({ ...prev, [key]: events }));
       setLayers((prev) => ({
         ...prev,

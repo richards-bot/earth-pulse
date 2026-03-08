@@ -6,14 +6,14 @@ import { fetchWildfireEvents } from './wildfires';
 export const layerAdapters: LayerAdapter[] = [
   {
     key: 'earthquakes',
-    fetchEvents: () => fetchEarthquakeEvents()
+    fetchEvents: (signal) => fetchEarthquakeEvents(signal)
   },
   {
     key: 'wildfires',
-    fetchEvents: () => fetchWildfireEvents()
+    fetchEvents: (signal) => fetchWildfireEvents(signal)
   },
   {
     key: 'airQuality',
-    fetchEvents: () => fetchAirQualityEvents()
+    fetchEvents: (signal) => fetchAirQualityEvents(signal)
   }
 ];
